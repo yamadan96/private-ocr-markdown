@@ -2,6 +2,9 @@
 
 import { Header } from '@/components/layout/Header';
 import { DropZone } from '@/components/upload/DropZone';
+import { ProgressBar } from '@/components/processing/ProgressBar';
+import { MarkdownPreview } from '@/components/editor/MarkdownPreview';
+import { ExportButtons } from '@/components/editor/ExportButtons';
 import { useAppStore } from '@/store/useAppStore';
 import { useOcr } from '@/hooks/useOcr';
 import { Settings } from 'lucide-react';
@@ -117,6 +120,15 @@ export default function Home() {
                   クリア
                 </button>
               </div>
+
+              {/* 進捗表示 */}
+              {files.some((f) => f.results.length > 0) && (
+                <>
+                  <ProgressBar results={files.flatMap((f) => f.results)} />
+                  <MarkdownPreview results={files.flatMap((f) => f.results)} />
+                  <ExportButtons results={files.flatMap((f) => f.results)} />
+                </>
+              )}
             </div>
           )}
         </div>
