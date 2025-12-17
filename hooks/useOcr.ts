@@ -9,6 +9,7 @@ import { useAppStore } from '@/store/useAppStore';
 import { convertPdfToImages, getPdfPageCount } from '@/lib/ocr/pdf-utils';
 import { processOcr } from '@/lib/ocr/ocr-worker';
 import { blobToDataURL } from '@/lib/ocr/image-processor';
+import { useMarkdown } from './useMarkdown';
 
 /**
  * OCR処理を管理するカスタムフック
@@ -17,12 +18,14 @@ export function useOcr() {
   const {
     files,
     language,
+    template,
     isProcessing,
     cancelRequested,
     setIsProcessing,
     setCancelRequested,
     updateFileResult,
   } = useAppStore();
+  const { convertToMarkdown } = useMarkdown();
 
   /**
    * ファイルのOCR処理を開始
@@ -108,11 +111,11 @@ export function useOcr() {
             imageUrl,
           });
 
-          // Markdown変換は後で実装
-          // 現時点ではrawTextをそのまま使用
+          // Markdown変換
+          const markdown = convertToMarkdown(lines, template);
           updateFileResult(fileInfo.id, pageNumber, {
             status: 'completed',
-            markdown: rawText,
+            markdown,
           });
         }
       } catch (error) {
@@ -123,7 +126,7 @@ export function useOcr() {
         });
       }
     },
-    [language, updateFileResult]
+    [language, template, updateFileResult, convertToMarkdown]
   );
 
   /**
@@ -163,11 +166,11 @@ export function useOcr() {
           imageUrl,
         });
 
-        // Markdown変換は後で実装
-        // 現時点ではrawTextをそのまま使用
+        // Markdown変換
+        const markdown = convertToMarkdown(lines, template);
         updateFileResult(fileInfo.id, pageNumber, {
           status: 'completed',
-          markdown: rawText,
+          markdown,
         });
       } catch (error) {
         console.error(`Error processing image:`, error);
@@ -177,7 +180,7 @@ export function useOcr() {
         });
       }
     },
-    [language, updateFileResult]
+    [language, template, updateFileResult, convertToMarkdown]
   );
 
   /**
