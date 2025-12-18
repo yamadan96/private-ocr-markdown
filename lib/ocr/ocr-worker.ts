@@ -59,41 +59,51 @@ export async function processOcr(
   imageSource: Blob | File | string,
   options: OcrOptions
 ): Promise<LineData[]> {
-  const w = await getOrCreateWorker(options.language);
+  console.log('processOcr: Starting with language:', options.language);
 
-  // OCR実行
-  const result = await w.recognize(imageSource, undefined, {
-    text: false,
-    blocks: false,
-    hocr: false,
-    tsv: false,
-  });
+  try {
+    console.log('processOcr: Getting or creating worker...');
+    const w = await getOrCreateWorker(options.language);
+    console.log('processOcr: Worker ready, starting recognition...');
 
-  // 進捗コールバック
-  if (options.onProgress) {
-    options.onProgress(100);
-  }
+    // OCR実行
+    const result = await w.recognize(imageSource);
+    console.log('processOcr: Recognition complete, processing results...');
+    console.log('processOcr: result.data:', result.data);
 
-  // 行データに変換
-  const lines: LineData[] = [];
-
-  if (result.data.lines) {
-    for (const line of result.data.lines) {
-      lines.push({
-        text: line.text.trim(),
-        bbox: {
-          x0: line.bbox.x0,
-          y0: line.bbox.y0,
-          x1: line.bbox.x1,
-          y1: line.bbox.y1,
-        },
-        lineHeight: line.bbox.y1 - line.bbox.y0,
-        confidence: line.confidence,
-      });
+    // 進捗コールバック
+    if (options.onProgress) {
+      options.onProgress(100);
     }
-  }
 
-  return lines;
+    // 行データに変換
+    const lines: LineData[] = [];
+
+    if (result.data.lines && result.data.lines.length > 0) {
+      console.log('processOcr: Found', result.data.lines.length, 'lines');
+      for (const line of result.data.lines) {
+        lines.push({
+          text: line.text.trim(),
+          bbox: {
+            x0: line.bbox.x0,
+            y0: line.bbox.y0,
+            x1: line.bbox.x1,
+            y1: line.bbox.y1,
+          },
+          lineHeight: line.bbox.y1 - line.bbox.y0,
+          confidence: line.confidence,
+        });
+      }
+    } else {
+      console.warn('processOcr: No lines found in result');
+    }
+
+    console.log('processOcr: Returning', lines.length, 'lines');
+    return lines;
+  } catch (error) {
+    console.error('processOcr: Error during OCR:', error);
+    throw error;
+  }
 }
 
 /**
