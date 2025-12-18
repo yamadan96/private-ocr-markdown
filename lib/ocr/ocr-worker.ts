@@ -29,8 +29,8 @@ async function getOrCreateWorker(language: string): Promise<Worker> {
 
   worker = await createWorker(language, 1, {
     workerPath: '/tesseract/worker.min.js',
-    corePath: '/tesseract/tesseract-core-simd-lstm.wasm.js',
     logger: (m) => {
+      console.log('Tesseract logger:', m);
       if (m.status === 'recognizing text') {
         // 進捗ログをコンソールに出力（デバッグ用）
         console.log(`OCR Progress: ${Math.round((m.progress || 0) * 100)}%`);
