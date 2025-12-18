@@ -3,6 +3,7 @@
 完全ローカル処理のOCR to Markdown変換アプリケーション
 
 ## 🌐 デモ
+<img width="775" height="649" alt="image" src="https://github.com/user-attachments/assets/3119b83d-f38b-4115-8f65-deeac92c1ed9" />
 
 **[https://private-ocr-markdown.vercel.app/](https://private-ocr-markdown.vercel.app/)**
 
