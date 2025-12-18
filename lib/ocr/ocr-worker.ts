@@ -28,6 +28,8 @@ async function getOrCreateWorker(language: string): Promise<Worker> {
   }
 
   worker = await createWorker(language, 1, {
+    workerPath: '/tesseract/worker.min.js',
+    corePath: '/tesseract/tesseract-core-simd-lstm.wasm.js',
     logger: (m) => {
       if (m.status === 'recognizing text') {
         // 進捗ログをコンソールに出力（デバッグ用）
