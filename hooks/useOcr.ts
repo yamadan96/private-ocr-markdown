@@ -31,6 +31,8 @@ export function useOcr() {
    * ファイルのOCR処理を開始
    */
   const startProcessing = useCallback(async () => {
+    console.log('startProcessing called, files:', files.length);
+
     if (files.length === 0) {
       console.warn('No files to process');
       return;
@@ -41,6 +43,8 @@ export function useOcr() {
 
     try {
       for (const fileInfo of files) {
+        console.log('Processing file:', fileInfo.file.name, 'type:', fileInfo.type);
+
         // キャンセルチェック
         if (useAppStore.getState().cancelRequested) {
           console.log('Processing cancelled');
@@ -52,7 +56,9 @@ export function useOcr() {
           await processPdfFile(fileInfo);
         } else {
           // 画像処理
+          console.log('Starting image processing...');
           await processImageFile(fileInfo);
+          console.log('Image processing completed');
         }
       }
     } catch (error) {
@@ -136,28 +142,36 @@ export function useOcr() {
     async (fileInfo: ReturnType<typeof useAppStore.getState>['files'][0]) => {
       try {
         const pageNumber = 1;
+        console.log('processImageFile: Starting for', fileInfo.file.name);
 
         // ステータス更新：OCR開始
+        console.log('processImageFile: Updating status to ocr');
         updateFileResult(fileInfo.id, pageNumber, {
           status: 'ocr',
           progress: 0,
         });
 
         // プレビュー用の画像URLを生成
+        console.log('processImageFile: Generating image URL');
         const imageUrl = await blobToDataURL(fileInfo.file);
 
         // OCR実行
+        console.log('processImageFile: Starting OCR with language:', language);
         const lines = await processOcr(fileInfo.file, {
           language,
           onProgress: (progress) => {
+            console.log('OCR progress:', progress);
             updateFileResult(fileInfo.id, pageNumber, {
               progress: Math.round(progress),
             });
           },
         });
 
+        console.log('processImageFile: OCR completed, lines:', lines.length);
+
         // 結果を更新
         const rawText = lines.map((line) => line.text).join('\n');
+        console.log('processImageFile: Raw text length:', rawText.length);
         updateFileResult(fileInfo.id, pageNumber, {
           status: 'converting',
           progress: 100,
@@ -167,11 +181,14 @@ export function useOcr() {
         });
 
         // Markdown変換
+        console.log('processImageFile: Converting to markdown with template:', template);
         const markdown = convertToMarkdown(lines, template);
+        console.log('processImageFile: Markdown length:', markdown.length);
         updateFileResult(fileInfo.id, pageNumber, {
           status: 'completed',
           markdown,
         });
+        console.log('processImageFile: Completed successfully');
       } catch (error) {
         console.error(`Error processing image:`, error);
         updateFileResult(fileInfo.id, 1, {
